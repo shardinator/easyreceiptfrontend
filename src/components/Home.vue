@@ -1,207 +1,114 @@
 <script setup>
 import { ref } from 'vue'
+import { requestTextHash } from '../api/hashApi.js'
 
-const transactionInfo = ref('')
-const zkpObject = ref('')
-const actionNote = ref('')
+const text = ref('')
+const loading = ref(false)
+const status = ref('')
 
-function generateTransaction() {
-  const id =
-    typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `tx-${Date.now()}`
-  transactionInfo.value = JSON.stringify(
-    {
-      id,
-      type: 'receipt',
-      amount: '0.00',
-      currency: 'USD',
-      merchant: '',
-      description: '',
-      timestamp: new Date().toISOString(),
-    },
-    null,
-    2,
-  )
-  actionNote.value = ''
-}
-
-function onSend() {
-  actionNote.value = 'Send flow (connect to your backend when ready).'
-}
-
-function onReceive() {
-  actionNote.value = 'Receive flow (connect to your backend when ready).'
-}
-
-function generateZkp() {
-  zkpObject.value = JSON.stringify(
-    {
-      version: 1,
-      scheme: 'groth16',
-      circuitId: 'easyreceipt-receipt-v1',
-      publicInputs: {
-        nullifier: '0x0000000000000000000000000000000000000000000000000000000000000000',
-        commitment: '0x0000000000000000000000000000000000000000000000000000000000000000',
-      },
-      proof: {
-        a: ['0x0…', '0x0…'],
-        b: [['0x0…', '0x0…'], ['0x0…', '0x0…']],
-        c: ['0x0…', '0x0…'],
-      },
-      note: 'Replace with a real proof from your prover.',
-      createdAt: new Date().toISOString(),
-    },
-    null,
-    2,
-  )
+async function generateHashCode() {
+  status.value = ''
+  loading.value = true
+  try {
+    const { hash } = await requestTextHash(text.value)
+    status.value = hash
+  } catch (e) {
+    const msg =
+      e?.status === 404
+        ? 'API not found (404). Is the backend running on port 3000?'
+        : typeof e?.message === 'string' && e.message.startsWith('API error')
+          ? e.message
+          : 'Could not reach the server. Is the backend running?'
+    status.value = msg
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
 <template>
   <section class="home">
-    <button type="button" class="btn btn-primary" @click="generateTransaction">
-      Generate transaction
-    </button>
-
-    <label class="field-label" for="tx-info">Transaction information</label>
+    <label class="label" for="user-text">Enter some text</label>
     <textarea
-      id="tx-info"
-      v-model="transactionInfo"
-      class="tx-textarea"
-      rows="12"
-      spellcheck="false"
-      placeholder="Generated transaction JSON will appear here. You can edit it."
+      id="user-text"
+      v-model="text"
+      class="input"
+      rows="8"
+      spellcheck="true"
     />
-
-    <div class="row-actions">
-      <button type="button" class="btn btn-secondary" @click="onSend">Send</button>
-      <button type="button" class="btn btn-secondary" @click="onReceive">Receive</button>
-    </div>
-    <p v-if="actionNote" class="action-note" role="status">{{ actionNote }}</p>
-
-    <button type="button" class="btn btn-primary" @click="generateZkp">
-      Generate ZKP
+    <button type="button" class="btn" :disabled="loading" @click="generateHashCode">
+      {{ loading ? 'Please wait…' : 'Generate Hash Code' }}
     </button>
-
-    <p class="field-label zkp-label">Digital ZKP object</p>
-    <pre class="zkp-box" tabindex="0">{{ zkpObject || '' }}</pre>
+    <p v-if="status" class="status" role="status">{{ status }}</p>
   </section>
 </template>
 
 <style scoped>
 .home {
   width: 100%;
-  max-width: 640px;
+  max-width: 520px;
   margin: 0 auto;
-  padding: 0 0 48px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
-.field-label {
-  margin: 0;
-  font-size: 0.875rem;
+.label {
+  font-size: 0.9375rem;
   font-weight: 600;
   color: #0b1a3d;
 }
 
-.zkp-label {
-  margin-top: 8px;
-}
-
-.tx-textarea {
+.input {
   width: 100%;
   padding: 12px 14px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.8125rem;
+  font: inherit;
   line-height: 1.45;
   color: #1a202c;
-  background: #f7fafc;
   border: 1px solid #cbd5e0;
   border-radius: 8px;
   resize: vertical;
-  min-height: 200px;
+  min-height: 140px;
 }
 
-.tx-textarea:focus {
+.input:focus {
   outline: 2px solid #26b17d;
   outline-offset: 1px;
   border-color: #26b17d;
 }
 
-.row-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
 .btn {
+  align-self: flex-start;
   font: inherit;
   font-weight: 600;
-  font-size: 0.9375rem;
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.btn-primary {
-  background: #26b17d;
+  padding: 10px 18px;
   color: #fff;
+  background: #26b17d;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
-.btn-primary:hover {
+.btn:hover:not(:disabled) {
   background: #1f9a6c;
 }
 
-.btn-primary:focus-visible {
+.btn:focus-visible {
   outline: 2px solid #0b1a3d;
   outline-offset: 2px;
 }
 
-.btn-secondary {
-  background: #fff;
-  color: #0b1a3d;
-  border-color: #0b1a3d;
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
-.btn-secondary:hover {
-  background: #0b1a3d;
-  color: #fff;
-}
-
-.btn-secondary:focus-visible {
-  outline: 2px solid #26b17d;
-  outline-offset: 2px;
-}
-
-.action-note {
-  margin: -4px 0 0;
-  font-size: 0.8125rem;
-  color: #4a5568;
-}
-
-.zkp-box {
+.status {
   margin: 0;
-  min-height: 160px;
-  max-height: 320px;
-  overflow: auto;
-  padding: 14px 16px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.75rem;
   line-height: 1.5;
+  word-break: break-all;
   color: #1a202c;
-  background: #edf2f7;
-  border: 1px solid #a0aec0;
-  border-radius: 8px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-x: auto;
 }
 </style>
