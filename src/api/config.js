@@ -1,5 +1,5 @@
 /**
- * Base URL for the Rust API (no trailing slash).
+ * Base URL for the Rust API (omit a trailing slash).
  *
  * Priority:
  * 1. `VITE_API_BASE_URL` when set (overrides everything below).
@@ -8,7 +8,7 @@
  * 4. **Production** anywhere else (e.g. Vercel): `DEFAULT_REMOTE_API_BASE` (Fly).
  */
 
-/** Default Fly.io API used when the app is served from a non-local host and no env override is set. */
+/** Default Fly.io API used when the app is served from a remote host and no env override is set. */
 export const DEFAULT_REMOTE_API_BASE = 'https://easyreceiptbackend.fly.dev'
 
 function normalizedEnvBase() {

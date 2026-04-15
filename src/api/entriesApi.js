@@ -34,8 +34,8 @@ export async function requestEntries() {
 
 /**
  * Deletes a saved entry by id.
- * On multi-node Fly setups, DELETE can 404 on a Machine that never had the row;
- * we re-list and retry until the row is gone or attempts are exhausted.
+ * When several Fly Machines run, DELETE can 404 on a Machine that never had the row;
+ * we fetch the list again and retry until the row is gone or attempts are exhausted.
  * @param {string} id
  * @returns {Promise<void>}
  */
@@ -67,7 +67,7 @@ export async function requestDeleteEntry(id) {
   }
 
   const err = new Error(
-    'Could not delete this row after several tries. The API may be running on multiple Fly Machines with separate disks — use a single Machine: fly scale count 1',
+    'Could not delete this row after several tries. The API may be running on multiple Fly machines with separate disks. Use a single machine. Run fly scale count 1 on the deployment host.',
   )
   err.status = 503
   throw err

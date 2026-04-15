@@ -29,7 +29,7 @@ export async function requestTextHash(text) {
 
   const data = await res.json()
   if (typeof data?.hash !== 'string') {
-    throw new Error('API error: response missing hash string')
+    throw new Error('API error: the response did not include a hash string')
   }
   return { hash: data.hash }
 }

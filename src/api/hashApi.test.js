@@ -44,6 +44,6 @@ describe('requestTextHash', () => {
       ok: true,
       json: async () => ({}),
     })
-    await expect(requestTextHash('x')).rejects.toThrow(/missing hash/)
+    await expect(requestTextHash('x')).rejects.toThrow(/did not include a hash/)
   })
 })
