@@ -8,6 +8,7 @@ const loading = ref(false)
 const status = ref('')
 const entries = ref([])
 const entriesLoading = ref(false)
+const entriesError = ref('')
 
 async function generateHashCode() {
   status.value = ''
@@ -39,11 +40,16 @@ function formatTimestamp(ms) {
 }
 
 async function refreshEntries() {
+  entriesError.value = ''
   entriesLoading.value = true
   try {
     entries.value = await requestEntries()
-  } catch {
-    // Keep UI simple: ignore refresh errors here.
+  } catch (e) {
+    const msg =
+      typeof e?.status === 'number'
+        ? `Saved entries failed to load (${e.status}).`
+        : 'Saved entries failed to load.'
+    entriesError.value = msg
   } finally {
     entriesLoading.value = false
   }
@@ -75,6 +81,7 @@ onMounted(() => {
         {{ entriesLoading ? 'Refreshing…' : 'Refresh' }}
       </button>
     </div>
+    <p v-if="entriesError" class="entriesError" role="status">{{ entriesError }}</p>
 
     <div class="tableWrap" role="region" aria-label="Saved hash entries">
       <table class="table">
@@ -255,6 +262,16 @@ onMounted(() => {
 .emptyCell {
   color: #4a5568;
   text-align: center;
+}
+
+.entriesError {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #fed7d7;
+  background: #fff5f5;
+  color: #c53030;
+  border-radius: 10px;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 640px) {
