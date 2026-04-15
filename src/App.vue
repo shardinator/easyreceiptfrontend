@@ -41,6 +41,6 @@ import Home from './components/Home.vue'
 
 .main {
   width: 100%;
-  max-width: 720px;
+  max-width: 980px;
 }
 </style>
