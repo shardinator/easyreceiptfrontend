@@ -23,3 +23,25 @@ export async function requestEntries() {
   return Array.isArray(data) ? data : []
 }
 
+/**
+ * Deletes a saved entry by id.
+ * @param {string} id
+ * @returns {Promise<void>}
+ */
+export async function requestDeleteEntry(id) {
+  const path = `${ENTRIES_PATH}/${encodeURIComponent(id)}`
+  const base = resolveApiBaseUrl()
+  const url = base ? `${base}${path}` : path
+  const res = await fetch(url, { method: 'DELETE' })
+  if (res.status === 404) {
+    const err = new Error('Entry not found')
+    err.status = 404
+    throw err
+  }
+  if (!res.ok) {
+    const err = new Error(`API error: ${res.status}`)
+    err.status = res.status
+    throw err
+  }
+}
+

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { requestTextHash } from '../api/hashApi.js'
-import { requestEntries } from '../api/entriesApi.js'
+import { requestDeleteEntry, requestEntries } from '../api/entriesApi.js'
 
 const text = ref('')
 const loading = ref(false)
@@ -33,7 +33,14 @@ async function generateHashCode() {
 function formatTimestamp(ms) {
   if (!ms) return ''
   try {
-    return new Date(Number(ms)).toLocaleString()
+    const d = new Date(Number(ms))
+    const y = d.getFullYear()
+    const mo = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    const h = String(d.getHours()).padStart(2, '0')
+    const min = String(d.getMinutes()).padStart(2, '0')
+    const s = String(d.getSeconds()).padStart(2, '0')
+    return `${day}:${mo}:${y}, ${h}:${min}:${s}`
   } catch {
     return String(ms)
   }
@@ -52,6 +59,22 @@ async function refreshEntries() {
     entriesError.value = msg
   } finally {
     entriesLoading.value = false
+  }
+}
+
+async function deleteEntry(id) {
+  entriesError.value = ''
+  try {
+    await requestDeleteEntry(id)
+    await refreshEntries()
+  } catch (e) {
+    const msg =
+      e?.status === 404
+        ? 'That entry was already removed.'
+        : typeof e?.message === 'string' && e.message.startsWith('API error')
+          ? e.message
+          : 'Could not delete the entry.'
+    entriesError.value = msg
   }
 }
 
@@ -92,11 +115,12 @@ onMounted(() => {
             <th>Timestamp</th>
             <th>Data</th>
             <th>Hash code</th>
+            <th class="actionsCol">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="entries.length === 0">
-            <td colspan="5" class="emptyCell">No entries yet</td>
+            <td colspan="6" class="emptyCell">No entries yet</td>
           </tr>
           <tr v-for="row in entries" :key="row.id">
             <td class="mono">{{ row.id }}</td>
@@ -104,6 +128,9 @@ onMounted(() => {
             <td class="mono">{{ formatTimestamp(row.timestamp_ms) }}</td>
             <td class="mono dataCell">{{ row.text }}</td>
             <td class="mono">{{ row.hash }}</td>
+            <td class="actionsCell">
+              <button type="button" class="btnDelete" @click="deleteEntry(row.id)">Delete</button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -221,7 +248,7 @@ onMounted(() => {
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 860px;
+  min-width: 920px;
 }
 
 .table th,
@@ -257,6 +284,37 @@ onMounted(() => {
 .dataCell {
   max-width: 360px;
   white-space: pre-wrap;
+}
+
+.actionsCol {
+  width: 96px;
+  white-space: nowrap;
+}
+
+.actionsCell {
+  vertical-align: middle;
+}
+
+.btnDelete {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 6px 10px;
+  color: #c53030;
+  background: #fff;
+  border: 1px solid #feb2b2;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btnDelete:hover {
+  background: #fff5f5;
+  border-color: #fc8181;
+}
+
+.btnDelete:focus-visible {
+  outline: 2px solid #c53030;
+  outline-offset: 2px;
 }
 
 .emptyCell {
