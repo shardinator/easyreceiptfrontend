@@ -3,6 +3,8 @@ import { requestTextHash } from './hashApi.js'
 
 describe('requestTextHash', () => {
   beforeEach(() => {
+    vi.stubEnv('VITE_API_BASE_URL', '')
+    vi.stubEnv('DEV', true)
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -14,6 +16,7 @@ describe('requestTextHash', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
   })
 
   it('POSTs JSON to the hash endpoint', async () => {

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { resolveApiBaseUrl } from './config.js'
+import { resolveApiBaseUrl, DEFAULT_REMOTE_API_BASE } from './config.js'
 
 describe('resolveApiBaseUrl', () => {
   afterEach(() => {
@@ -20,10 +20,10 @@ describe('resolveApiBaseUrl', () => {
     expect(resolveApiBaseUrl()).toBe('http://127.0.0.1:3000')
   })
 
-  it('in prod without env and no browser, uses same origin (empty base)', () => {
+  it('in prod without env and no browser, uses default Fly API', () => {
     vi.stubEnv('VITE_API_BASE_URL', '')
     vi.stubEnv('DEV', false)
-    expect(resolveApiBaseUrl()).toBe('')
+    expect(resolveApiBaseUrl()).toBe(DEFAULT_REMOTE_API_BASE)
   })
 
   it('in prod without env on localhost page, still points at local Axum', () => {
@@ -31,5 +31,12 @@ describe('resolveApiBaseUrl', () => {
     vi.stubEnv('DEV', false)
     vi.stubGlobal('window', { location: { hostname: 'localhost' } })
     expect(resolveApiBaseUrl()).toBe('http://127.0.0.1:3000')
+  })
+
+  it('in prod without env on remote host, uses default Fly API', () => {
+    vi.stubEnv('VITE_API_BASE_URL', '')
+    vi.stubEnv('DEV', false)
+    vi.stubGlobal('window', { location: { hostname: 'myapp.vercel.app' } })
+    expect(resolveApiBaseUrl()).toBe('https://easyreceiptbackend.fly.dev')
   })
 })

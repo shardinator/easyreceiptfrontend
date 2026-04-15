@@ -2,13 +2,14 @@
  * Base URL for the Rust API (no trailing slash).
  *
  * Priority:
- * 1. `VITE_API_BASE_URL` when set (production / split deploy).
- * 2. Vite **development** (`import.meta.env.DEV`): `http://127.0.0.1:3000` (direct to Axum, CORS open).
- * 3. **Production build** opened from **this machine** (`localhost` / `127.0.0.1` in the address
- *    bar, including `vite preview` or a static server for `dist/`): same `http://127.0.0.1:3000`
- *    so the browser does not rely on a proxy (many static servers return 404 for `/api/*`).
- * 4. Otherwise empty string: same origin as the page (set `VITE_API_BASE_URL` for real deploys).
+ * 1. `VITE_API_BASE_URL` when set (overrides everything below).
+ * 2. Vite **development** (`import.meta.env.DEV`): `http://127.0.0.1:3000` unless `VITE_API_BASE_URL` is set.
+ * 3. **Production** in the browser on `localhost` / `127.0.0.1` / `[::1]`: local Axum for preview.
+ * 4. **Production** anywhere else (e.g. Vercel): `DEFAULT_REMOTE_API_BASE` (Fly).
  */
+
+/** Default Fly.io API used when the app is served from a non-local host and no env override is set. */
+export const DEFAULT_REMOTE_API_BASE = 'https://easyreceiptbackend.fly.dev'
 
 function normalizedEnvBase() {
   const raw = (import.meta.env.VITE_API_BASE_URL ?? '').trim()
@@ -27,5 +28,5 @@ export function resolveApiBaseUrl() {
   if (fromEnv) return fromEnv
   if (import.meta.env.DEV) return 'http://127.0.0.1:3000'
   if (isLocalBrowserHost()) return 'http://127.0.0.1:3000'
-  return ''
+  return DEFAULT_REMOTE_API_BASE
 }
