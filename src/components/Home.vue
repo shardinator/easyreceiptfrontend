@@ -69,9 +69,9 @@ async function deleteEntry(id) {
     await refreshEntries()
   } catch (e) {
     const msg =
-      e?.status === 404
-        ? 'That entry was already removed.'
-        : typeof e?.message === 'string' && e.message.startsWith('API error')
+      typeof e?.message === 'string' && e.message.startsWith('API error')
+        ? e.message
+        : typeof e?.message === 'string' && e.message.length > 0
           ? e.message
           : 'Could not delete the entry.'
     entriesError.value = msg
