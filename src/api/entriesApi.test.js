@@ -29,7 +29,10 @@ describe('requestEntries', () => {
 
   it('GETs the entries endpoint', async () => {
     const rows = await requestEntries()
-    expect(fetch).toHaveBeenCalledWith('http://127.0.0.1:3000/api/entries', { method: 'GET' })
+    expect(fetch).toHaveBeenCalledWith('http://127.0.0.1:3000/api/entries', {
+      method: 'GET',
+      cache: 'no-store',
+    })
     expect(rows).toHaveLength(1)
     expect(rows[0].id).toBe('id1')
   })

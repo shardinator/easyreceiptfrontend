@@ -13,7 +13,7 @@ function entriesEndpointUrl() {
  * @returns {Promise<Array<{id:string,count:number,timestamp_ms:number,text:string,hash:string}>>}
  */
 export async function requestEntries() {
-  const res = await fetch(entriesEndpointUrl(), { method: 'GET' })
+  const res = await fetch(entriesEndpointUrl(), { method: 'GET', cache: 'no-store' })
   if (!res.ok) {
     const err = new Error(`API error: ${res.status}`)
     err.status = res.status
@@ -32,7 +32,7 @@ export async function requestDeleteEntry(id) {
   const path = `${ENTRIES_PATH}/${encodeURIComponent(id)}`
   const base = resolveApiBaseUrl()
   const url = base ? `${base}${path}` : path
-  const res = await fetch(url, { method: 'DELETE' })
+  const res = await fetch(url, { method: 'DELETE', cache: 'no-store' })
   if (res.status === 404) {
     const err = new Error('Entry not found')
     err.status = 404

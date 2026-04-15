@@ -28,6 +28,7 @@ describe('requestTextHash', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: 'hello' }),
+        cache: 'no-store',
       }),
     )
     expect(result).toEqual({ hash: 'deadbeef' })
